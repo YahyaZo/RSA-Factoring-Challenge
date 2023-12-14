@@ -1,25 +1,48 @@
-import sys
-from math import isqrt
+#!/usr/bin/bash
 
-def factorize(n):
-    for i in range(2, isqrt(n) + 1):
-        if n % i == 0:
-            return i, n // i
-    return n, 1
+check_factor()
+{
+	if [ $# -ne 3 ];
+        then
+                args=("$@")
+                count=0
+                num2=1
+                for a in ${args[*]};
+                do
+                        if [ $count -gt 1 ];
+                        then
+                                num2=$(echo $a*$num2 | bc)
+                        fi
+                        count=$((count + 1))
+                done
+        else
+                num2=$3
+        fi
 
-def factorize_file(filename):
-    with open(filename, 'r') as file:
-        numbers = [int(line) for line in file.readlines()]
+        num1=$2
+        num=$(echo "$1" | tr ':' '=')
 
-    for number in numbers:
-        factors = factorize(number)
-        print(f"{number}={factors[0]}*{factors[1]}")
+        result=$(echo "if($num2 > $num1) 1 else 0" | bc)
+	        if ((result == 1)); then
+		        numcp=$num1
+		        num1=$num2
+		        num2=$numcp
+                fi
 
-if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        print("Usage: python factors.py <file>")
-        sys.exit(1)
+        echo "$num$num1*$num2"
+}
 
-    filename = sys.argv[1]
-    factorize_file(filename)
+if [ $# -ne 1 ]
+then
+        echo 'Usage: factors <file>'
+        exit 1
+else
 
+        while read i
+        do
+
+                result=$(factor "$i")
+                check_factor $result
+
+        done < "$1"
+fi
